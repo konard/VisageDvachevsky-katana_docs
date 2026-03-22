@@ -1,0 +1,16 @@
+{
+  "name": "missing_content_type",
+  "description": "POST /items without Content-Type header returns 415",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "body": "{\"name\":\"widget\",\"quantity\":10}"
+  },
+  "expected": {
+    "status": 415,
+    "body_contains": "unsupported Content-Type"
+  }
+}

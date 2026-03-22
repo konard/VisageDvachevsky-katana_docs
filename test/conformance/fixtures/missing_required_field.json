@@ -1,0 +1,17 @@
+{
+  "name": "missing_required_field",
+  "description": "POST /items with missing required 'name' returns 400 (parse failure)",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{\"quantity\":10}"
+  },
+  "expected": {
+    "status": 400,
+    "body_contains": "invalid request body"
+  }
+}

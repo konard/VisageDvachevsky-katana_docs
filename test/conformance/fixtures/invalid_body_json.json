@@ -1,0 +1,17 @@
+{
+  "name": "invalid_body_json",
+  "description": "POST /items with malformed JSON returns 400",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{not valid json"
+  },
+  "expected": {
+    "status": 400,
+    "body_contains": "invalid request body"
+  }
+}

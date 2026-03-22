@@ -1,0 +1,15 @@
+{
+  "name": "method_not_allowed",
+  "description": "DELETE /items is not declared, returns 405",
+  "request": {
+    "method": "DELETE",
+    "uri": "/items",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "body": ""
+  },
+  "expected": {
+    "status": 405
+  }
+}

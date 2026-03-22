@@ -1,0 +1,17 @@
+{
+  "name": "invalid_email_format",
+  "description": "POST /items with invalid email format returns 400",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{\"name\":\"widget\",\"quantity\":5,\"email\":\"not-an-email\"}"
+  },
+  "expected": {
+    "status": 400,
+    "body_contains": "email"
+  }
+}

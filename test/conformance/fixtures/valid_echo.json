@@ -1,0 +1,17 @@
+{
+  "name": "valid_echo",
+  "description": "POST /echo with valid message returns 200 with echo",
+  "request": {
+    "method": "POST",
+    "uri": "/echo",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{\"message\":\"hello\"}"
+  },
+  "expected": {
+    "status": 200,
+    "body_contains": "hello"
+  }
+}

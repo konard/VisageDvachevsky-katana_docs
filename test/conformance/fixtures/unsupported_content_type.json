@@ -1,0 +1,17 @@
+{
+  "name": "unsupported_content_type",
+  "description": "POST /items with XML Content-Type returns 415",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/xml",
+      "Accept": "application/json"
+    },
+    "body": "<item><name>widget</name></item>"
+  },
+  "expected": {
+    "status": 415,
+    "body_contains": "unsupported Content-Type"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "valid_create_item",
+  "description": "POST /items with valid JSON body returns 200",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{\"name\":\"widget\",\"quantity\":10}"
+  },
+  "expected": {
+    "status": 200,
+    "content_type": "application/json"
+  }
+}

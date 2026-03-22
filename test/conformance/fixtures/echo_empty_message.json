@@ -1,0 +1,17 @@
+{
+  "name": "echo_empty_message",
+  "description": "POST /echo with empty message violates minLength:1 returns 400",
+  "request": {
+    "method": "POST",
+    "uri": "/echo",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{\"message\":\"\"}"
+  },
+  "expected": {
+    "status": 400,
+    "body_contains": "message"
+  }
+}

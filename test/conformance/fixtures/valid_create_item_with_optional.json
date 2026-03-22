@@ -1,0 +1,17 @@
+{
+  "name": "valid_create_item_with_optional",
+  "description": "POST /items with optional enum tag and email returns 200",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "*/*"
+    },
+    "body": "{\"name\":\"gadget\",\"quantity\":5,\"tag\":\"priority\",\"email\":\"a@b.com\"}"
+  },
+  "expected": {
+    "status": 200,
+    "content_type": "application/json"
+  }
+}

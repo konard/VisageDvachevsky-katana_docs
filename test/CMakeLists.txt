@@ -53,5 +53,27 @@ add_custom_target(run_integration_tests
     DEPENDS integration_tests
 )
 
+add_executable(conformance_tests
+    main.cpp
+    conformance/test_conformance.cpp
+)
+
+target_link_libraries(conformance_tests
+    katana_core
+    pthread
+)
+
+target_include_directories(conformance_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/conformance
+    ${CMAKE_SOURCE_DIR}
+)
+
+add_custom_target(run_conformance_tests
+    COMMAND conformance_tests
+    DEPENDS conformance_tests
+)
+
 add_test(NAME unit_tests COMMAND unit_tests)
 add_test(NAME integration_tests COMMAND integration_tests)
+add_test(NAME conformance_tests COMMAND conformance_tests)

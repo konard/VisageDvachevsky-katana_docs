@@ -1,0 +1,16 @@
+{
+  "name": "valid_get_item",
+  "description": "GET /items/42 with valid path param returns 200",
+  "request": {
+    "method": "GET",
+    "uri": "/items/42",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "body": ""
+  },
+  "expected": {
+    "status": 200,
+    "content_type": "application/json"
+  }
+}

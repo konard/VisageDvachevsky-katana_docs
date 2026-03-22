@@ -1,0 +1,15 @@
+{
+  "name": "route_not_found",
+  "description": "GET /nonexistent returns 404",
+  "request": {
+    "method": "GET",
+    "uri": "/nonexistent",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "body": ""
+  },
+  "expected": {
+    "status": 404
+  }
+}

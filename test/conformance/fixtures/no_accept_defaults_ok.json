@@ -1,0 +1,16 @@
+{
+  "name": "no_accept_defaults_ok",
+  "description": "POST /items without Accept header is accepted (default: any)",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"name\":\"widget\",\"quantity\":10}"
+  },
+  "expected": {
+    "status": 200,
+    "content_type": "application/json"
+  }
+}

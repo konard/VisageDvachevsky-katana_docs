@@ -1,0 +1,17 @@
+{
+  "name": "unacceptable_accept",
+  "description": "POST /items with Accept: text/xml returns 406",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "text/xml"
+    },
+    "body": "{\"name\":\"widget\",\"quantity\":10}"
+  },
+  "expected": {
+    "status": 406,
+    "body_contains": "unsupported Accept"
+  }
+}

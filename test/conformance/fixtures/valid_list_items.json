@@ -1,0 +1,16 @@
+{
+  "name": "valid_list_items",
+  "description": "GET /items with no params returns 200",
+  "request": {
+    "method": "GET",
+    "uri": "/items",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "body": ""
+  },
+  "expected": {
+    "status": 200,
+    "content_type": "application/json"
+  }
+}

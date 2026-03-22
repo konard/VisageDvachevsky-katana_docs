@@ -1,0 +1,17 @@
+{
+  "name": "constraint_violation_quantity",
+  "description": "POST /items with quantity > 10000 returns 400 validation error",
+  "request": {
+    "method": "POST",
+    "uri": "/items",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": "{\"name\":\"widget\",\"quantity\":99999}"
+  },
+  "expected": {
+    "status": 400,
+    "body_contains": "quantity"
+  }
+}
