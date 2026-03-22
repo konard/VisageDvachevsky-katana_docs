@@ -41,15 +41,23 @@ KATANA — серверный фреймворк на C++ для разрабо�
   - x-katana-* extensions
 - ✅ Unit/integration/fuzz тесты
 
-**В разработке / не реализовано:**
-- ⏳ SQL генерация/libpq
-- ⏳ Redis клиент
-- ⏳ OpenTelemetry tracing
-- ⏳ Prometheus metrics
-- ⏳ Structured logging
-- ⏳ Media type registry (CBOR/MessagePack) — отнесено в Stage 3
+**Stage 3 — Runtime Hardening (в работе):**
+- ⏳ Media type registry (CBOR/MessagePack) — не начато, только JSON поддерживается в runtime
+- ⏳ Conformance harness для generated endpoints — не начато
+- ⏳ Стабилизация test path в canonical Linux/WSL CI — в процессе
+- ⏳ Ревизия `x-katana-*` extension contract — расширения парсятся, но runtime-поведение (cache, rate-limit, idempotency) не реализовано
 
-Разделы README/ARCHITECTURE описывают целевое состояние фреймворка. То, что уже работает — помечено ✅ выше.
+**Не реализовано (Stage 4+):**
+- ❌ SQL генерация/libpq — планируется в Stage 4
+- ❌ Redis клиент — планируется в Stage 5
+- ❌ OpenTelemetry tracing — планируется в Stage 6
+- ❌ Prometheus metrics — планируется в Stage 6
+- ❌ Structured logging — планируется в Stage 6
+- ❌ `katana new` / `katana dev` / `katana lint` CLI — планируется в Stage 7
+- ❌ HTTP/2, gRPC, WebSocket — планируется в Stage 7+
+- ❌ Client SDK generation (TS/Go/Rust/Python) — планируется в Stage 7+
+
+> **Важно**: разделы ниже (Архитектурная модель, Работа с БД, Кэш, Наблюдаемость, CLI, Линтер и др.) описывают **целевое состояние** фреймворка, а не текущую реализацию. Фактически реализованный функционал перечислен выше.
 
 ## Getting Started (сегодня)
 
@@ -277,7 +285,7 @@ if (result) {
 
 ---
 
-## Проблемы, которые решает KATANA
+## Проблемы, которые решает KATANA (целевое состояние)
 
 * Непредсказуемые задержки из-за общих пулов, локов, GC и межпоточных гонок.
 * N+1, неявные запросы и планы в ORM.
@@ -314,15 +322,17 @@ DTO используют `std::pmr::*` и `std::string_view`. Стандартн
 
 ### Сетевой I/O и протоколы
 
-* Базовый backend: **epoll** + vectored I/O (`readv/writev`).
-* HTTP/1.1 в базовой поставке.
-* Производственные профили: HTTP/2 (HPACK), HTTP/3/QUIC.
-* Zero-copy статика через `sendfile`/kTLS при поддержке ядра.
-* `io_uring` как опциональный backend.
+* ✅ Базовый backend: **epoll** + vectored I/O (`readv/writev`).
+* ✅ HTTP/1.1 в базовой поставке.
+* ✅ `io_uring` как опциональный backend (экспериментальный).
+* ⏳ Производственные профили: HTTP/2 (HPACK), HTTP/3/QUIC — не реализовано (Stage 7+).
+* ⏳ Zero-copy статика через `sendfile`/kTLS при поддержке ядра — не реализовано.
 
 ---
 
 ## Типобезопасный API и кодогенерация
+
+> **Статус**: OpenAPI-кодогенерация реализована (Stage 2). SQL-кодогенерация планируется (Stage 4).
 
 **OpenAPI + SQL** — источники истины.
 
@@ -339,17 +349,21 @@ DTO используют `std::pmr::*` и `std::string_view`. Стандартн
 
 ### Расширения OpenAPI (`x-katana-*`)
 
+> **Статус**: расширения парсятся из OpenAPI спецификаций и сохраняются в AST. Однако runtime-поведение (cache, rate-limit, idempotency) **не реализовано** — это целевое состояние Stage 5.
+
 Не меняют стандарт, добавляют декларативные политики:
 
-* аллокация (`arena` / `pmr` / `heap`),
-* выбор сериализатора (`zero-copy` / `dom`),
-* кэш (TTL, stale-while-revalidate, ключи инвалидации),
-* rate limiting и idempotency,
-* требования консистентности и дедлайны.
+* ✅ аллокация (`arena` / `pmr` / `heap`) — парсится, влияет на codegen,
+* ⏳ выбор сериализатора (`zero-copy` / `dom`) — парсится, runtime не реализован,
+* ⏳ кэш (TTL, stale-while-revalidate, ключи инвалидации) — парсится, runtime не реализован (Stage 5),
+* ⏳ rate limiting и idempotency — парсится, runtime не реализован (Stage 5),
+* ⏳ требования консистентности и дедлайны — парсится, runtime не реализован (Stage 5).
 
 ---
 
-## Многоуровневый кодоген: High / Mid / Low
+## Многоуровневый кодоген: High / Mid / Low (целевое состояние)
+
+> **Статус**: реализован только базовый уровень кодогенерации (`katana_gen openapi`). Слои High/Mid/Low — целевая архитектура, не текущая реализация. Команды `katana gen high`, `katana gen sql` ещё не существуют.
 
 ### High level — «нулевой бойлерплейт»
 
@@ -375,7 +389,9 @@ DTO используют `std::pmr::*` и `std::string_view`. Стандартн
 
 ---
 
-## Работа с БД
+## Работа с БД (целевое состояние — Stage 4)
+
+> **Статус**: не реализовано. SQL-слой планируется в Stage 4. Описание ниже — целевая архитектура.
 
 ORM **не используется**.
 
@@ -397,7 +413,9 @@ SQL в `.sql` — источник истины для генератора:
 
 ---
 
-## Кэш и Redis
+## Кэш и Redis (целевое состояние — Stage 5)
+
+> **Статус**: не реализовано. Redis-клиент и policy-контракты планируются в Stage 5. `x-katana-cache` и `x-katana-rate-limit` парсятся из OpenAPI, но не имеют runtime-реализации.
 
 Кэш/идемпотентность/rate-limit описываются в OpenAPI/SQL-аннотациях.
 
@@ -413,9 +431,11 @@ SQL в `.sql` — источник истины для генератора:
 
 ---
 
-## Наблюдаемость и диагностика
+## Наблюдаемость и диагностика (целевое состояние — Stage 6)
 
-Встроены:
+> **Статус**: не реализовано. OpenTelemetry, Prometheus и structured logging планируются в Stage 6. Единственные наблюдаемые метрики сейчас — атомарные счётчики в reactor (tasks, events, timers, exceptions) и benchmark harness.
+
+Целевое состояние:
 
 * OpenTelemetry-трейсы (end-to-end),
 * Prometheus-метрики: RPS, p50/p95/p99/p999, длины очередей, состояние backpressure, использование арен, ошибки БД/Redis,
@@ -429,9 +449,11 @@ SQL в `.sql` — источник истины для генератора:
 
 ---
 
-## Дев-режим (DX)
+## Дев-режим (DX) (целевое состояние — Stage 7)
 
-`katana dev`:
+> **Статус**: не реализовано. `katana dev` и hot-reload планируются в Stage 7.
+
+`katana dev` (планируется):
 
 * hot-reload контроллеров **без** рестарта реакторов,
 * быстрые сборки (clang + ccache),
@@ -444,6 +466,8 @@ SQL в `.sql` — источник истины для генератора:
 ---
 
 ## Инструментарий (CLI)
+
+> **Статус**: из описанных ниже команд реализована только `katana_gen openapi`. Остальные команды (`katana new`, `katana dev`, `katana gen sql`, `katana db`, `katana bench`, `katana doctor`) — целевое состояние (Stage 4–7).
 
 ### Создание проекта
 
@@ -478,9 +502,11 @@ SQL в `.sql` — источник истины для генератора:
 
 ---
 
-## Политика и линтер (policy as code)
+## Политика и линтер (целевое состояние — Stage 7)
 
-`katana lint` (clang-based, SARIF-отчёты для PR):
+> **Статус**: не реализовано. `katana lint` планируется в Stage 7.
+
+`katana lint` (планируется, clang-based, SARIF-отчёты для PR):
 
 **Память/арены**
 
@@ -517,6 +543,8 @@ SQL в `.sql` — источник истины для генератора:
 
 ## Кросс-платформенная поддержка
 
+> **Статус**: реализован epoll backend (Linux). io_uring — экспериментальный. kqueue (macOS) и IOCP (Windows) — не реализованы.
+
 Абстракция I/O-backend:
 
 * Linux: `epoll` / `io_uring`,
@@ -538,11 +566,17 @@ Thread pinning (опциональная оптимизация):
 
 ## Безопасность и тестирование
 
-* Фуззинг HTTP-парсера (libFuzzer) — обязателен в CI.
-* Property-тесты валидаторов, round-trip ser/deser для DTO.
-* E2E-тесты по контракту генерируются автоматически.
-* Conformance-suite для runtime/генератора.
-* Performance-budget: регрессия p99/p999 → fail.
+**Реализовано:**
+* ✅ Фуззинг HTTP-парсера и OpenAPI-парсера (libFuzzer)
+* ✅ Unit-тесты для router, HTTP parser, OpenAPI loader, codegen integration
+* ✅ Integration-тесты для HTTP server и fixture loading
+* ✅ Benchmark harness с regression detection
+
+**Планируется (Stage 3+):**
+* ⏳ Conformance-suite для generated endpoints по OpenAPI fixtures
+* ⏳ Property-тесты валидаторов, round-trip ser/deser для DTO
+* ⏳ E2E-тесты по контракту, генерируемые автоматически
+* ⏳ Performance-budget: регрессия p99/p999 → fail сборки
 
 ---
 
@@ -737,34 +771,48 @@ Thread pinning (опциональная оптимизация):
 
 ## Организация репозитория
 
-* `/cli` — katana CLI
-* `/runtime` — reactor, io_backends, arena, http, sql, redis, telemetry
-* `/codegen/core` — парсеры, AST, проверка совместимости
-* `/codegen/templates` — C++/TS/Go/Rust шаблоны
-* `/codegen/plugins` — расширения генератора
-* `/tools/katana-lint` — правила и интеграция с clang-tidy/LibTooling
-* `/tools/katana-dev` — dev orchestration
-* `/examples/high_crud` — полный scaffold
-* `/examples/mid_custom` — переопределение сериализации/валидатора
-* `/examples/low_raw` — raw reactor/libpq/redis
-* `/docs/RFCs` — спецификации Core/Codegen/Lint
-* `/docs/Conformance` — тесты на соответствие
+**Текущая структура:**
+
+* `/katana/core/` — единственный runtime-модуль: reactor, arena, HTTP/1.1, router, OpenAPI loader, content negotiation, serde, validation
+* `/tools/katana_gen/` — кодогенератор из OpenAPI (DTO, validators, JSON parsers, route tables, handler bindings)
+* `/examples/` — рабочие примеры: `hello_world_server`, `router_rest_api`, `middleware_examples`, `raii_http_server`, codegen-примеры (`task_api`, `compute_api`, `benchmark_api`, и др.)
+* `/test/unit/` — unit-тесты (HTTP, router, OpenAPI, codegen, reactor, и др.)
+* `/test/integration/` — интеграционные тесты (HTTP server, fixture loading)
+* `/test/fuzz/` — фуззинг HTTP-парсера и OpenAPI-парсера
+* `/test/load/` — wrk Lua-скрипты для нагрузочного тестирования
+* `/benchmark/` — исходники бенчмарков
+* `/benchmarks/` — baseline snapshots для регрессий
+* `/scripts/` — автоматизация: `run_benchmarks.py`, pre-commit hooks
+* `/docs/` — документация по компонентам (OPENAPI, ROUTER, BENCHMARKING, и др.)
+* `/comparisons/` — сравнение с другими HTTP-фреймворками
+
+**Планируемые (не существуют):**
+
+* `/cli` — katana CLI (Stage 7)
+* `/codegen/templates` — шаблоны для SDK-генерации (Stage 7+)
+* `/tools/katana-lint` — правила и интеграция с clang-tidy (Stage 7)
+* `/docs/RFCs` — спецификации (будут добавляться по мере стабилизации)
+* `/docs/Conformance` — conformance тесты (Stage 3)
 
 ---
 
-## Результат
+## Результат (целевое состояние)
 
-* Предсказуемые задержки, контролируемый p99/p999.
-* Отсутствие глобальных очередей/гонок/GC.
-* SQL-first вместо ORM, но без ручного бойлерплейта.
-* Кэш/идемпотентность/лимиты — часть контракта.
-* Наблюдаемость и performance-budget из коробки.
-* Разработчик пишет **бизнес-логику**, инструментарию поручены монотонные задачи.
+> **Статус**: на данный момент реализованы первые два пункта. Остальные — целевые.
 
-## Быстрый старт (Mid layer)
+* ✅ Предсказуемые задержки, контролируемый p99/p999.
+* ✅ Отсутствие глобальных очередей/гонок/GC.
+* ⏳ SQL-first вместо ORM, но без ручного бойлерплейта. *(Stage 4)*
+* ⏳ Кэш/идемпотентность/лимиты — часть контракта. *(Stage 5)*
+* ⏳ Наблюдаемость и performance-budget из коробки. *(Stage 6)*
+* ⏳ Разработчик пишет **бизнес-логику**, инструментарию поручены монотонные задачи. *(Stage 7)*
+
+## Быстрый старт (Mid layer) — целевое состояние
+
+> **Статус**: пример ниже показывает целевой DX. Сейчас реализованы только `katana_gen openapi` для кодогенерации и ручная сборка через CMake. Команды `katana new`, `katana gen sql`, `katana dev` ещё не существуют. Для работающего quick start — см. секцию «Getting Started (сегодня)» выше.
 
 ```bash
-# Шаг 1 — создать проект
+# Шаг 1 — создать проект (планируется)
 katana new mysvc --layer mid
 cd mysvc
 
@@ -855,10 +903,10 @@ curl http://localhost:8080/users/1
 
 ## Что вы получаете
 
-* API **соответствует OpenAPI** → любое расхождение = **ошибка компиляции**
-* SQL **соответствует моделям** → несоответствие = **ошибка генерации**
-* Запрос обрабатывается **внутри одного реактора** → **нет гонок и очередей**
-* Память выделяется в **арене запроса** и освобождается **одной операцией**
-* Метрики и трейсы **включены из коробки**
+* ✅ API **соответствует OpenAPI** → любое расхождение = **ошибка компиляции**
+* ⏳ SQL **соответствует моделям** → несоответствие = **ошибка генерации** *(Stage 4)*
+* ✅ Запрос обрабатывается **внутри одного реактора** → **нет гонок и очередей**
+* ✅ Память выделяется в **арене запроса** и освобождается **одной операцией**
+* ⏳ Метрики и трейсы **включены из коробки** *(Stage 6)*
 
-> Разработчик пишет **только бизнес-логику** — инфраструктура генерируется и контролируется инструментарием.
+> Разработчик пишет **только бизнес-логику** — инфраструктура генерируется и контролируется инструментарием. *(Полностью достижимо после завершения Stages 3–7.)*
