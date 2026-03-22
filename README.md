@@ -243,7 +243,7 @@ if (result) {
 - ✅ Format validators (email, uuid, date-time, uri, ipv4, hostname)
 - ✅ Handler interfaces из OpenAPI operations
 - ✅ Constexpr route tables с compile-time metadata для type safety
-- ✅ x-katana-* extensions (cache, alloc, rate-limit)
+- ✅ x-katana-* extensions (cache, alloc, rate-limit) — парсятся из спецификации; runtime-поведение не реализовано (Stage 5)
 
 📖 **Подробная документация:** [docs/OPENAPI.md](docs/OPENAPI.md)
 
@@ -254,7 +254,7 @@ if (result) {
 * Форматирование — `.clang-format`, статический анализ — `.clang-tidy`.
 * Локальный авто-линт: `pip install pre-commit && pre-commit install` (clang-format, cmake-format, базовые проверки YAML/конфликтов).
 * Перед PR: `cmake --build --preset debug && ctest --preset debug`; низкоуровневые изменения гонять с sanitizer-пресетами (`asan/tsan/ubsan`).
-* Дополнительно: гайды в `CONTRIBUTING.md` и `docs/TESTING.md`.
+* Дополнительно: гайды в `CONTRIBUTING.md`.
 * Для тестирования без реактора добавлены харнесы: `test/support/http_handler_harness.hpp` (оборачивает handler над Request/Response) и `test/support/virtual_event_loop.hpp` (фейковый event loop с виртуальным временем).
 
 ### 📈 Сравнение HTTP-фреймворков
@@ -343,7 +343,7 @@ DTO используют `std::pmr::*` и `std::string_view`. Стандартн
 * валидаторы,
 * сериализацию/десериализацию,
 * статические таблицы маршрутов,
-* (опционально) клиентские SDK (TS/Go/Rust/Python).
+* ⏳ (опционально) клиентские SDK (TS/Go/Rust/Python) — не реализовано (Stage 7+).
 
 Несоответствия контракту становятся **ошибками компиляции**.
 

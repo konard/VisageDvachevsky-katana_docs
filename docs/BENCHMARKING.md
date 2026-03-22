@@ -4,6 +4,8 @@ Comprehensive benchmarking framework for the KATANA server framework. This docum
 
 ## Overview
 
+> **Статус**: система бенчмарков полностью реализована и работает. Покрывает core runtime (Stage 1) и codegen quality (Stage 2). Бенчмарки для SQL (Stage 4), Redis (Stage 5) и observability overhead (Stage 6) будут добавлены по мере реализации соответствующих компонентов.
+
 The KATANA benchmarking system provides:
 
 - **Unified Automation**: Single command to run all benchmarks
@@ -486,3 +488,9 @@ When adding new benchmarks:
 - `scripts/pre-commit-benchmarks.sh` - Pre-commit integration
 
 ---
+
+## See Also
+
+- [OPENAPI.md](OPENAPI.md) — OpenAPI loader и кодогенератор
+- [ROUTER.md](ROUTER.md) — HTTP Router
+- [ARCHITECTURE.md](../ARCHITECTURE.md) — Общая архитектура фреймворка
