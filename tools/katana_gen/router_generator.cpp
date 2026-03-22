@@ -75,12 +75,15 @@ std::string generate_router_table(const document& doc) {
     out << "#pragma once\n\n";
     out << "#include \"katana/core/http.hpp\"\n";
     out << "#include \"katana/core/http_utils.hpp\"\n";
+    out << "#include \"katana/core/media_type_registry.hpp\"\n";
     out << "#include \"katana/core/router.hpp\"\n";
     out << "#include <array>\n";
     out << "#include <span>\n";
     out << "#include <string_view>\n\n";
     out << "namespace generated {\n\n";
-    out << "using katana::http_utils::content_type_info;\n\n";
+    out << "using katana::http_utils::content_type_info;\n";
+    out << "using katana::media_type_registry;\n";
+    out << "using katana::codec_id;\n\n";
     out << "struct route_entry {\n";
     out << "    std::string_view path;\n";
     out << "    katana::http::method method;\n";
@@ -251,6 +254,7 @@ std::string generate_router_bindings(const document& doc) {
     out << "#include \"katana/core/handler_context.hpp\"\n";
     out << "#include \"katana/core/http_server.hpp\"\n";
     out << "#include \"katana/core/http_utils.hpp\"\n";
+    out << "#include \"katana/core/media_type_registry.hpp\"\n";
     out << "#include \"generated_routes.hpp\"\n";
     out << "#include \"generated_handlers.hpp\"\n";
     out << "#include \"generated_json.hpp\"\n";
@@ -280,6 +284,9 @@ std::string generate_router_bindings(const document& doc) {
     out << "using katana::http_utils::hash_string;\n";
     out << "using katana::http_utils::content_type_info;\n";
     out << "using katana::http_utils::named_param_target;\n";
+    out << "using katana::media_type_registry;\n";
+    out << "using katana::codec_id;\n";
+    out << "using katana::resolve_request_codec;\n";
     out << "\n";
 
     // Collect all static routes (routes without path parameters)

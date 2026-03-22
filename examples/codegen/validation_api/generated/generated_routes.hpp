@@ -3,6 +3,7 @@
 
 #include "katana/core/http.hpp"
 #include "katana/core/http_utils.hpp"
+#include "katana/core/media_type_registry.hpp"
 #include "katana/core/router.hpp"
 #include <array>
 #include <span>
@@ -11,6 +12,8 @@
 namespace generated {
 
 using katana::http_utils::content_type_info;
+using katana::media_type_registry;
+using katana::codec_id;
 
 struct route_entry {
     std::string_view path;

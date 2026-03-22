@@ -21,6 +21,7 @@ add_executable(unit_tests
     unit/test_codegen_integration.cpp
     unit/test_codegen_snapshots.cpp
     unit/test_json_parser.cpp
+    unit/test_media_type_registry.cpp
 )
 
 target_link_libraries(unit_tests

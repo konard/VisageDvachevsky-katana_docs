@@ -25,6 +25,7 @@
 #include "katana/core/handler_context.hpp"
 #include "katana/core/http_server.hpp"
 #include "katana/core/http_utils.hpp"
+#include "katana/core/media_type_registry.hpp"
 #include "katana/core/problem.hpp"
 #include "katana/core/router.hpp"
 #include "katana/core/serde.hpp"
@@ -50,6 +51,9 @@ using katana::http_utils::format_validation_error;
 using katana::http_utils::format_validation_error_into;
 using katana::http_utils::hash_string;
 using katana::http_utils::named_param_target;
+using katana::media_type_registry;
+using katana::codec_id;
+using katana::resolve_request_codec;
 using katana::http_utils::negotiate_response_type;
 using katana::http_utils::query_param;
 
