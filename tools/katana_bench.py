@@ -74,7 +74,7 @@ def find_build_dir() -> Path:
         if d.is_dir():
             return d
     print("ERROR: Cannot find benchmark build directory.", file=sys.stderr)
-    print("Build with: cmake --preset debug && cmake --build --preset debug", file=sys.stderr)
+    print("Build with: cmake --preset bench && cmake --build --preset bench", file=sys.stderr)
     sys.exit(1)
 
 

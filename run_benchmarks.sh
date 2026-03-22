@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# DEPRECATED: This script uses the legacy generate_benchmark_report.py pipeline.
+# Preferred alternative: make bench-report (uses scripts/run_benchmarks.py)
+# See docs/BENCHMARKING.md for the current benchmark contract.
 
 set -e
 

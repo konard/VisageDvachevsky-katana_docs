@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# DEPRECATED: Legacy benchmark report generator.
+# Preferred alternative: scripts/run_benchmarks.py (unified runner)
+# See docs/BENCHMARKING.md for the current benchmark contract.
 
 import json
 import os

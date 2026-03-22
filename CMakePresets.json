@@ -195,6 +195,13 @@
       "output": {
         "shortProgress": true
       }
+    },
+    {
+      "name": "bench",
+      "configurePreset": "bench",
+      "output": {
+        "shortProgress": true
+      }
     }
   ]
 }

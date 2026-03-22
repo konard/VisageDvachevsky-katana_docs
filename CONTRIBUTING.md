@@ -30,9 +30,31 @@
 - README/ARCHITECTURE описывают целевую архитектуру. Если функциональность добавлена или, наоборот, ещё не реализована, фиксируйте это в соответствующих секциях.
 - Описывайте новые CLI-флаги, параметры сборки и параметры тестов в README или отдельном файле в `docs/`.
 
+## Canonical Developer Path
+
+```bash
+# 1. Build + unit/integration tests (mandatory)
+make build PRESET=debug
+make test  PRESET=debug
+
+# 2. Lint (mandatory перед PR)
+make lint
+
+# 3. Sanitizers (mandatory для core изменений)
+make test PRESET=asan
+
+# 4. Perf smoke (recommended для core/codegen изменений)
+make perf-smoke
+
+# 5. Full benchmarks (optional)
+make bench-report
+```
+
 ## PR-Checklist
 
-- [ ] `cmake --build --preset debug`
-- [ ] `ctest --preset debug`
-- [ ] `pre-commit run --all-files`
+- [ ] `make build PRESET=debug` — проект собирается
+- [ ] `make test PRESET=debug` — unit/integration тесты проходят
+- [ ] `make lint` — форматирование и линтинг
+- [ ] `make test PRESET=asan` — AddressSanitizer (для изменений в `katana/core/`)
+- [ ] `make perf-smoke` — нет регрессий (для изменений в `katana/core/` или `tools/katana_gen/`)
 - [ ] Обновлены релевантные .md (особенно если меняется фактическая функциональность)

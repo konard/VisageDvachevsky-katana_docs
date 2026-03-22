@@ -7,7 +7,7 @@ DOCKER_BENCH_IMAGE ?= katana-bench-epoll
 DOCKER_PROFILE_IMAGE ?= katana-profile
 PERF_PATH ?= $(HOME)/src/WSL2-Linux-Kernel/tools/perf/perf
 
-.PHONY: help configure build test format lint bench bench-report fuzz profile clean \
+.PHONY: help configure build test format lint bench bench-report perf-smoke fuzz profile clean \
 	docker-bench-image docker-bench docker-profile-image docker-profile
 
 help:
@@ -17,7 +17,8 @@ help:
 	@echo "  make format (clang-format + cmake-format via pre-commit if available)"
 	@echo "  make lint   (pre-commit run --all-files)"
 	@echo "  make bench  (Release benchmarks preset + run performance_benchmark)"
-	@echo "  make bench-report (full run_benchmarks.sh: builds, runs all benches, generates BENCHMARK_RESULTS.md)"
+	@echo "  make bench-report (unified runner: builds, runs all stages, generates BENCHMARK_RESULTS.md)"
+	@echo "  make perf-smoke (quick stage 1+2 regression check against baseline)"
 	@echo "  make fuzz   (build+run HTTP parser fuzz target)"
 	@echo "  make profile (Release simple_benchmark)"
 	@echo "  make docker-bench-image / docker-bench (build & run benchmark container)"
@@ -54,7 +55,17 @@ bench:
 	./build/bench/benchmark/performance_benchmark
 
 bench-report:
-	./run_benchmarks.sh
+	cmake --preset bench
+	cmake --build --preset bench -j$$(nproc)
+	python3 scripts/run_benchmarks.py --aggregation median --output benchmark_results --update-docs
+
+perf-smoke:
+	cmake --preset bench
+	cmake --build --preset bench --target bench_all -j$$(nproc)
+	python3 tools/katana_bench.py --stage 1 --format console \
+		--compare benchmarks/baseline_stage1.json --threshold 0.05
+	python3 tools/katana_bench.py --stage 2 --format console \
+		--compare benchmarks/baseline_stage2.json --threshold 0.05
 
 fuzz:
 	cmake --preset fuzz

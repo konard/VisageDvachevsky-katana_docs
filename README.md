@@ -58,8 +58,9 @@ KATANA — серверный фреймворк на C++ для разрабо�
 3. Сборка: `cmake --build --preset debug`.
 4. Тесты: `ctest --preset debug` (используется лёгкий gtest-совместимый харнес из `test/gtest/gtest.h`).
 5. Примеры: `cmake --build --preset examples && ./build/examples/hello_world_server`.
-6. Бенчмарки: `cmake --preset bench && cmake --build --preset bench && python3 scripts/run_benchmarks.py --build-dir build/bench --include-e2e`.
-7. Удобно через Makefile: `make build PRESET=debug`, `make test PRESET=debug`, `make bench`, `make fuzz`, `make profile`.
+6. Бенчмарки: `cmake --preset bench && cmake --build --preset bench && python3 scripts/run_benchmarks.py --include-e2e`.
+7. Perf smoke (быстрая проверка регрессий): `make perf-smoke`.
+8. Удобно через Makefile: `make build PRESET=debug`, `make test PRESET=debug`, `make bench`, `make perf-smoke`, `make fuzz`, `make profile`.
 8. CRUD бенч: по умолчанию in-memory; для высокого RPS можно задать `KATANA_CRUD_BACKEND=memcached` (опционально `MEMCACHED_HOST`/`MEMCACHED_PORT`). Docker бенч-сборка поднимает memcached автоматически.
 
 ## Router Quick Start (Stage 2)
@@ -246,7 +247,7 @@ if (result) {
 * Форматирование — `.clang-format`, статический анализ — `.clang-tidy`.
 * Локальный авто-линт: `pip install pre-commit && pre-commit install` (clang-format, cmake-format, базовые проверки YAML/конфликтов).
 * Перед PR: `cmake --build --preset debug && ctest --preset debug`; низкоуровневые изменения гонять с sanitizer-пресетами (`asan/tsan/ubsan`).
-* Дополнительно: гайды в `CONTRIBUTING.md` и `docs/TESTING.md`.
+* Дополнительно: гайды в `CONTRIBUTING.md`.
 * Для тестирования без реактора добавлены харнесы: `test/support/http_handler_harness.hpp` (оборачивает handler над Request/Response) и `test/support/virtual_event_loop.hpp` (фейковый event loop с виртуальным временем).
 
 ### 📈 Сравнение HTTP-фреймворков

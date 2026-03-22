@@ -1,4 +1,8 @@
 #!/bin/bash
+# DEPRECATED: This script is a simple wrk wrapper for ad hoc benchmarks.
+# Preferred alternative: make perf-smoke (quick regression check)
+#                    or: make bench-report (full benchmark suite)
+# See docs/BENCHMARKING.md for the current benchmark contract.
 
 set -e
 
