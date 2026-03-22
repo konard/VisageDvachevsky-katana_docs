@@ -38,36 +38,55 @@ API-first подход: OpenAPI и SQL как единственные исто�
 
 ## Дерево репозитория
 
+### Текущая структура
+
 ```
 KATANA/
-├── cmake/                  # toolchains, presets
-├── third_party/            # pinned dependencies (if needed)
-├── tools/
-│   └── codegen/           # generators: OpenAPI→routes, SQL→models/repos
 ├── katana/
-│   ├── core/              # runtime core (event loop, scheduler, allocators, time)
-│   ├── net/               # TCP/UDP, TLS, DNS (Asio), connectors/acceptors
-│   ├── http/              # HTTP/1.1 + HTTP/2 (Boost.Beast), routing, middleware
-│   ├── rpc/               # gRPC/Cap'n Proto (optional)
-│   ├── sql/               # DAL: drivers, pool, migrations, repos (generated)
-│   ├── cache/             # Redis (redis-plus-plus), in-process cache
-│   ├── config/            # config loading/validation (TOML/YAML), hot-reload
-│   ├── logging/           # spdlog/fmt + trace_id correlation
-│   ├── tracing/           # OpenTelemetry OTLP exporter
-│   ├── metrics/           # Prometheus pull/OTLP push, system & business metrics
-│   ├── security/          # TLS (OpenSSL/BoringSSL), JWT (jwt-cpp), RBAC/ABAC hooks
-│   └── util/              # gsl, expected, outcome, small_vec, ring_buffer
-├── examples/
-│   ├── mid_service/       # "mid layer" service from OpenAPI/SQL
-│   └── low_service/       # "low layer" with manual control
+│   └── core/              # единственный runtime-модуль (reactor, arena, HTTP/1.1,
+│       ├── include/       #   router, OpenAPI loader, content negotiation, serde,
+│       │   └── katana/    #   validation, wheel timer, tcp, problem details)
+│       │       └── core/
+│       └── src/
+├── tools/
+│   └── katana_gen/        # кодогенератор: OpenAPI → DTO/validators/JSON/routes/bindings
+├── examples/              # hello_world_server, router_rest_api, middleware_examples,
+│   └── codegen/           #   codegen-примеры (task_api, compute_api, benchmark_api, и др.)
 ├── test/
-│   ├── unit/
-│   ├── integration/
-│   └── fuzz/
-├── benchmarks/
+│   ├── unit/              # unit-тесты (HTTP, router, OpenAPI, codegen, reactor, и др.)
+│   ├── integration/       # HTTP server, fixture loading
+│   ├── fuzz/              # HTTP-парсер, OpenAPI-парсер
+│   └── load/              # wrk Lua-скрипты
+├── benchmark/             # исходники бенчмарков
+├── benchmarks/            # baseline snapshots
+├── scripts/               # run_benchmarks.py, pre-commit hooks
+├── docs/                  # OPENAPI.md, ROUTER.md, BENCHMARKING.md, и др.
+├── comparisons/           # сравнение с другими HTTP-фреймворками
 ├── .clang-format
 ├── .clang-tidy
 └── CMakeLists.txt
+```
+
+### Планируемая структура (целевое состояние)
+
+```
+KATANA/
+├── katana/
+│   ├── core/              # ✅ реализовано
+│   ├── net/               # ⏳ TCP/UDP, TLS, DNS (Stage 7+)
+│   ├── http/              # ⏳ HTTP/2 (Stage 7+)
+│   ├── rpc/               # ⏳ gRPC/Cap'n Proto (Stage 7+)
+│   ├── sql/               # ⏳ DAL: drivers, pool, repos (Stage 4)
+│   ├── cache/             # ⏳ Redis, in-process cache (Stage 5)
+│   ├── config/            # ⏳ config loading/validation (Stage 7)
+│   ├── logging/           # ⏳ structured logging (Stage 6)
+│   ├── tracing/           # ⏳ OpenTelemetry (Stage 6)
+│   ├── metrics/           # ⏳ Prometheus (Stage 6)
+│   ├── security/          # ⏳ TLS, JWT, RBAC (Stage 7+)
+│   └── util/              # ⏳ gsl, expected, outcome (Stage 7+)
+├── tools/
+│   └── katana_gen/        # ✅ реализовано (OpenAPI); ⏳ SQL codegen (Stage 4)
+└── ...
 ```
 
 ---
@@ -170,7 +189,9 @@ KATANA/
 
 **Примечание**: Этапы 1-3 используют собственную реализацию. Будущие этапы могут опционально интегрировать Asio/корутины.
 
-### 2. katana/net
+### 2. katana/net (не реализовано — Stage 7+)
+
+> **Статус**: TCP listener/socket реализованы в `katana/core`. Отдельный модуль `katana/net` не существует.
 
 **Connect/Accept**: TCP/TLS, UDP/QUIC (опционально), DNS-resolve.
 
@@ -178,23 +199,27 @@ KATANA/
 
 **Zero-copy**: буфера как `asio::const_buffer`/`mutable_buffer`, реюз через пулы.
 
-### 3. katana/http
+### 3. katana/http (реализовано в katana/core)
 
-**Server**: Собственный HTTP/1.1 парсер с chunked encoding, keep-alive, лимитами безопасности.
+> **Статус**: HTTP/1.1 полностью реализован в `katana/core`. Router и middleware реализованы. HTTP/2 — не реализован.
 
-**Parser**: Zero-copy парсинг, строгое соответствие RFC 7230, настраиваемые лимиты размеров.
+**Server**: ✅ Собственный HTTP/1.1 парсер с chunked encoding, keep-alive, лимитами безопасности.
 
-**Serializer**: Поддержка Content-Length и chunked transfer encoding.
+**Parser**: ✅ Zero-copy парсинг, строгое соответствие RFC 7230, настраиваемые лимиты размеров.
 
-**Error Mapping**: std::expected → Problem Details (RFC 7807).
+**Serializer**: ✅ Поддержка Content-Length и chunked transfer encoding.
 
-**Router**: (этап 2+) таблица маршрутов из OpenAPI, статическая диспетчеризация.
+**Error Mapping**: ✅ std::expected → Problem Details (RFC 7807).
 
-**Middleware**: (этап 3+) логирование, аутентификация, rate-limit, CORS, трейсинг.
+**Router**: ✅ Compile-time routing с path parameters, middleware chains, 404/405 auto-handling, content negotiation (415/406).
 
-**HTTP/2**: (этап 7+) через nghttp2 или собственную реализацию.
+**Middleware**: ✅ Базовый middleware chain (logging, auth, CORS — в примерах). ⏳ Rate-limit, tracing — не реализованы (Stage 5–6).
 
-### 4. katana/sql
+**HTTP/2**: ⏳ Не реализовано (Stage 7+).
+
+### 4. katana/sql (не реализовано — Stage 4)
+
+> **Статус**: не реализовано. Модуль `katana/sql` не существует. Планируется в Stage 4.
 
 **Drivers**: PostgreSQL/SQLite, неблокирующие операции через worker-pool (per-core connection pools).
 
@@ -204,19 +229,25 @@ KATANA/
 
 **Migrations**: встроенный runner, версионирование, checksum.
 
-### 5. katana/cache
+### 5. katana/cache (не реализовано — Stage 5)
+
+> **Статус**: не реализовано. Модуль `katana/cache` не существует. Планируется в Stage 5.
 
 **Redis**: per-core connection pools, TTL-кэш, write-behind/write-through опционально.
 
 **Local Cache**: lock-free LRU/LFU (folly-подобный), шардирование по core.
 
-### 6. katana/config
+### 6. katana/config (не реализовано — Stage 7)
+
+> **Статус**: не реализовано. Модуль `katana/config` не существует.
 
 **Sources**: файл, env, CLI; merge-стратегия, schema-валидация.
 
 **Hot reload**: сигнал + валидированная пересборка runtime-конфигов.
 
-### 7. katana/tracing + metrics + logging
+### 7. katana/tracing + metrics + logging (не реализовано — Stage 6)
+
+> **Статус**: не реализовано. Модули `katana/tracing`, `katana/metrics`, `katana/logging` не существуют. Единственные метрики — атомарные счётчики в reactor (`tasks_run`, `events_polled`, `timers_fired`, `exceptions_caught`).
 
 **Tracing**: OpenTelemetry (spans вокруг handler'ов), propagate trace_id via headers.
 
@@ -224,7 +255,9 @@ KATANA/
 
 **Logging**: структурный, корреляция по trace_id/span_id, уровни/сэмплинг.
 
-### 8. katana/security
+### 8. katana/security (не реализовано — Stage 7+)
+
+> **Статус**: не реализовано. Модуль `katana/security` не существует. Лимиты на заголовки/body реализованы в HTTP-парсере (`katana/core`).
 
 **TLS**: контекст, ключи, ciphers, OCSP stapling (при необходимости).
 
@@ -289,9 +322,9 @@ KATANA/
 - `--strict`: fail on any validation error
 - `--dump-ast`: сохранить AST summary в JSON
 
-### SQL (Планируется)
+### SQL (не реализовано — Stage 4)
 
-**Генерируем**: модели, маппинг строк, репозитории, типобезопасные параметры.
+**Генерируем** (планируется): модели, маппинг строк, репозитории, типобезопасные параметры.
 
 ### Границы
 
@@ -437,31 +470,33 @@ LTO (Link-Time Optimization) в релизе.
 
 ### Unit-тесты
 
-GoogleTest для компонентов, моки для внешних зависимостей.
+✅ Лёгкий gtest-совместимый харнес (`test/gtest/gtest.h`) для компонентов. ~20 unit-тестов: HTTP parser, router, OpenAPI loader, codegen integration, reactor, и др.
 
 ### Integration-тесты
 
-Testcontainers (PostgreSQL, Redis), реальные зависимости.
+✅ HTTP server integration tests, fixture loading. ⏳ Testcontainers (PostgreSQL, Redis) — не реализовано (Stage 4–5).
 
 ### Property-based тесты
 
-RapidCheck для валидаторов, сериализаторов.
+⏳ RapidCheck для валидаторов, сериализаторов — не реализовано.
 
 ### Fuzzing
 
-libFuzzer для HTTP-парсера, входных данных.
+✅ libFuzzer для HTTP-парсера и OpenAPI-парсера.
 
 ### E2E тесты
 
-Автогенерация из OpenAPI, проверка контрактов.
+⏳ Автогенерация из OpenAPI, conformance harness — не реализовано (Stage 3). Есть wrk load-тесты.
 
 ### Performance-budget
 
-Регрессия p99 > 10% → fail сборки.
+✅ Benchmark harness с regression detection (`scripts/run_benchmarks.py`). ⏳ Автоматический fail сборки при регрессии — частично реализован.
 
 ---
 
-## Observability
+## Observability (целевое состояние — Stage 6)
+
+> **Статус**: не реализовано. Описание ниже — целевая архитектура.
 
 ### Метрики (Prometheus)
 
@@ -486,55 +521,57 @@ libFuzzer для HTTP-парсера, входных данных.
 
 ---
 
-## Безопасность
+## Безопасность (частично реализовано)
 
 ### TLS
 
-BoringSSL/OpenSSL, kTLS offload (Linux), OCSP stapling.
+⏳ BoringSSL/OpenSSL, kTLS offload (Linux), OCSP stapling — не реализовано (Stage 7+).
 
 ### JWT
 
-jwt-cpp для валидации токенов.
+⏳ jwt-cpp для валидации токенов — не реализовано (Stage 7+).
 
 ### RBAC/ABAC
 
-Политики как middleware, декларативное описание прав.
+⏳ Политики как middleware, декларативное описание прав — не реализовано (Stage 7+).
 
 ### Защита от инъекций
 
-Только prepared statements, запрет строковых конкатенаций SQL.
+⏳ Только prepared statements, запрет строковых конкатенаций SQL — SQL-слой не реализован (Stage 4).
 
 ### Лимиты
 
-Размер заголовков/body, таймауты, rate limiting.
+✅ Размер заголовков/body, таймауты — реализовано в HTTP-парсере. ⏳ Rate limiting — не реализовано (Stage 5).
 
 ---
 
-## Dev Experience
+## Dev Experience (частично реализовано)
 
 ### Hot-reload
 
-Пересборка только изменённых контроллеров, динамическая загрузка `.so`.
+⏳ Пересборка только изменённых контроллеров, динамическая загрузка `.so` — не реализовано (Stage 7).
 
 ### Быстрая сборка
 
-clang + lld, ccache, precompiled headers.
+✅ CMake presets (debug, release, asan, tsan, ubsan, bench, examples). Поддержка clang и GCC.
 
 ### Автоподнятие зависимостей
 
-Docker Compose с PostgreSQL, Redis, Prometheus, Grafana, Jaeger.
+⏳ Docker Compose с PostgreSQL, Redis, Prometheus, Grafana, Jaeger — не реализовано. Есть Docker-окружение для бенчмарков.
 
 ### Моки
 
-`--mock-db`, `--mock-cache` для разработки без внешних зависимостей.
+⏳ `--mock-db`, `--mock-cache` — не реализовано (зависит от Stage 4–5).
 
 ### Debug режим
 
-`--no-arena`, `--no-pin`, AddressSanitizer.
+✅ Sanitizer-пресеты (ASan/TSan/UBSan) доступны через CMake presets.
 
 ---
 
-## Production
+## Production (целевое состояние — Stage 6–7)
+
+> **Статус**: не реализовано. Описание ниже — целевая архитектура.
 
 ### Профили
 
@@ -557,5 +594,8 @@ Dockerfile (multi-stage), Kubernetes manifests, health checks.
 ## Ссылки
 
 - [README.md](README.md) — обзор фреймворка, быстрый старт
-- `/docs/RFCs` — спецификации Core/Codegen/Lint
-- `/docs/Conformance` — тесты на соответствие стандартам
+- [docs/OPENAPI.md](docs/OPENAPI.md) — OpenAPI loader и кодогенератор
+- [docs/ROUTER.md](docs/ROUTER.md) — HTTP Router
+- [docs/BENCHMARKING.md](docs/BENCHMARKING.md) — система бенчмарков
+- ⏳ `/docs/RFCs` — спецификации Core/Codegen/Lint (планируется)
+- ⏳ `/docs/Conformance` — тесты на соответствие стандартам (планируется, Stage 3)
