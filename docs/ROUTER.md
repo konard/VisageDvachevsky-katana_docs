@@ -716,22 +716,27 @@ route_entry routes[] = {
 
 ## Roadmap
 
-### Planned Features
+### Реализовано (Stage 2)
 
-- [ ] **OpenAPI codegen** — автоматическая генерация роутов из OpenAPI спецификации
-- [ ] **Query parameter parsing** — встроенный парсинг query strings
-- [ ] **Compile-time routing table** — O(1) lookup для больших наборов роутов
+- [x] **OpenAPI codegen** — автоматическая генерация route tables, handler interfaces и router bindings из OpenAPI спецификации (`katana_gen`)
+- [x] **Constexpr route tables** — compile-time metadata для type safety
+- [x] **Content negotiation** — Content-Type/Accept с 415/406 автоматическими ответами
+
+### Planned Features (Stage 3+)
+
+- [ ] **Query parameter parsing** — встроенный парсинг query strings (сейчас ручной через `req.uri`)
+- [ ] **Compile-time routing table** — O(1) lookup для больших наборов роутов (сейчас O(N) linear scan)
 - [ ] **Regex path parameters** — `/users/{id:\d+}` с валидацией на compile-time
 - [ ] **Path prefixes** — группировка роутов по префиксам
 - [ ] **Route metadata** — tags, descriptions для документации
 
-### Future Middleware
+### Future Middleware (Stage 5–6)
 
-- [ ] Rate limiting (per-IP, per-user)
-- [ ] Caching (etag, conditional requests)
+- [ ] Rate limiting (per-IP, per-user) — Stage 5
+- [ ] Caching (etag, conditional requests) — Stage 5
 - [ ] Compression (gzip, brotli)
-- [ ] Request ID propagation
-- [ ] OpenTelemetry tracing
+- [ ] Request ID propagation — Stage 6
+- [ ] OpenTelemetry tracing — Stage 6
 
 ---
 
@@ -786,4 +791,4 @@ route_entry routes[] = {
 
 - [OPENAPI.md](OPENAPI.md) — OpenAPI loader и AST
 - [ARCHITECTURE.md](../ARCHITECTURE.md) — Общая архитектура фреймворка
-- [TESTING.md](TESTING.md) — Тестирование роутеров
+- [BENCHMARKING.md](BENCHMARKING.md) — Система бенчмарков

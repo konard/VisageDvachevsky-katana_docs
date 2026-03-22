@@ -753,18 +753,18 @@ TEST(OpenAPILoader, AcceptsVersionHint) {
 
 Stage 2 закрыт. Дальнейшее развитие OpenAPI-слоя идёт уже в общих roadmap-этапах репозитория.
 
-### Ближайшие задачи OpenAPI-направления
+### Stage 3 — Runtime Hardening (текущий)
 
-- [ ] conformance harness для generated endpoints по OpenAPI fixtures
-- [ ] media type registry integration для JSON/CBOR/MessagePack
-- [ ] чёткая спецификация поддерживаемых `x-katana-*` extensions
-- [ ] стабилизация runtime/codegen test path в canonical Linux/WSL CI
+- [ ] conformance harness для generated endpoints по OpenAPI fixtures — **не начато**
+- [ ] media type registry integration для JSON/CBOR/MessagePack — **не начато**, сейчас поддерживается только `application/json`
+- [ ] ревизия `x-katana-*` extensions: чёткая спецификация того, что поддерживается runtime vs только парсится — **не начато**, расширения парсятся и сохраняются в AST, но runtime-поведение (cache, rate-limit) отсутствует
+- [ ] стабилизация runtime/codegen test path в canonical Linux/WSL CI — **в процессе**
 
-### Дальше, после стабилизации runtime
+### Stage 4+ — после стабилизации runtime
 
-- [ ] интеграция generated contract с SQL layer
-- [ ] интеграция policy annotations (`cache`, `idempotency`, `rate-limit`) с runtime
-- [ ] compatibility tooling и SDK generation только после стабилизации core milestones
+- [ ] интеграция generated contract с SQL layer (Stage 4)
+- [ ] интеграция policy annotations (`cache`, `idempotency`, `rate-limit`) с runtime (Stage 5)
+- [ ] compatibility tooling и SDK generation (Stage 7+)
 
 ---
 
